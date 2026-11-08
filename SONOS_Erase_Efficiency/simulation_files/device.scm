@@ -1,0 +1,98 @@
+; =====================================================================
+;  SONOS FET -- structure for ERASE-EFFICIENCY study
+;  Sentaurus Structure Editor (X-2025.09)    run:  sde -e -l device.scm
+;  Output:  sonos_msh.tdr   (needs datexcodes.txt in the same folder)
+;
+;  Coordinates: x = lateral, y = depth (y > 0 into the substrate,
+;  y < 0 is the gate stack).  All lengths in um.
+; =====================================================================
+(sde:clear)
+
+; --- 1. Geometric Parameters (in um) ---
+(define Lg    0.100)     ; 100 nm Gate Length
+(define Lext  0.050)     ; 50 nm Source/Drain Extensions
+(define Tox   0.002)     ; 2 nm Tunnel Oxide
+(define Tnit  0.005)     ; 5 nm Nitride Trapping Layer
+(define Tbox  0.006)     ; 6 nm Blocking Oxide
+(define Tgate 0.050)     ; 50 nm Gate Electrode (n+ poly)
+(define Tsub  0.200)     ; 200 nm Substrate
+(define Xj    0.020)     ; 20 nm Junction Depth
+
+; --- Doping (cm^-3) ---
+(define NAsub 1e17)      ; p-substrate
+(define NDsd  1e20)      ; n+ source/drain peak
+(define NDpol 1e20)      ; n+ poly gate
+
+(define Xmin  (- 0 Lext))
+(define Xmax  (+ Lg Lext))
+(define Ysub  Tsub)
+(define Ytox  (- 0 Tox))
+(define Ynit  (- Ytox Tnit))
+(define Ybox  (- Ynit Tbox))
+(define Ygate (- Ybox Tgate))
+
+; --- 2. Create Regions ---
+; Nitride is "NitrideAsSemiconductor" (defined in datexcodes.txt) so that
+; Sentaurus Device can place traps and solve trap-assisted tunneling in it.
+; Oxides use "Oxide" so the parameters in sdevice.par apply to them.
+(sdegeo:set-default-boolean "ABA")
+(sdegeo:create-rectangle (position Xmin 0 0) (position Xmax Ysub 0) "Silicon"                "Substrate")
+(sdegeo:create-rectangle (position 0 Ytox 0) (position Lg 0 0)      "Oxide"                  "TunnelOxide")
+(sdegeo:create-rectangle (position 0 Ynit 0) (position Lg Ytox 0)   "NitrideAsSemiconductor" "Nitride")
+(sdegeo:create-rectangle (position 0 Ybox 0) (position Lg Ynit 0)   "Oxide"                  "BlockOxide")
+(sdegeo:create-rectangle (position 0 Ygate 0) (position Lg Ybox 0)  "PolySi"                 "GatePoly")
+
+; --- 3. Contacts ---
+(sdegeo:define-contact-set "gate"      4.0 (color:rgb 1 0 0) "##")
+(sdegeo:define-contact-set "source"    4.0 (color:rgb 0 1 0) "##")
+(sdegeo:define-contact-set "drain"     4.0 (color:rgb 0 0 1) "##")
+(sdegeo:define-contact-set "substrate" 4.0 (color:rgb 1 1 0) "##")
+
+(sdegeo:define-2d-contact (find-edge-id (position (/ Lg 2) Ygate 0)) "gate")
+(sdegeo:define-2d-contact (find-edge-id (position (/ Xmin 2) 0 0)) "source")
+(sdegeo:define-2d-contact (find-edge-id (position (+ Lg (/ Lext 2)) 0 0)) "drain")
+(sdegeo:define-2d-contact (find-edge-id (position (/ Lg 2) Ysub 0)) "substrate")
+
+; --- 4. Doping Profiles ---
+(sdedr:define-constant-profile "Sub_Doping" "BoronActiveConcentration" NAsub)
+(sdedr:define-constant-profile-region "Sub_Place" "Sub_Doping" "Substrate")
+
+(sdedr:define-constant-profile "Gate_Doping" "PhosphorusActiveConcentration" NDpol)
+(sdedr:define-constant-profile-region "Gate_Place" "Gate_Doping" "GatePoly")
+
+(sdedr:define-refeval-window "Base_Source" "Line" (position Xmin 0 0) (position 0 0 0))
+(sdedr:define-refeval-window "Base_Drain"  "Line" (position Lg 0 0)   (position Xmax 0 0))
+(sdedr:define-gaussian-profile "SD_Doping" "ArsenicActiveConcentration"
+  "PeakPos" 0 "PeakVal" NDsd "ValueAtDepth" NAsub "Depth" Xj "Gauss" "Factor" 0.7)
+(sdedr:define-analytical-profile-placement "Place_Source" "SD_Doping" "Base_Source" "Positive" "NoReplace" "Eval")
+(sdedr:define-analytical-profile-placement "Place_Drain"  "SD_Doping" "Base_Drain"  "Positive" "NoReplace" "Eval")
+
+; --- 5. Meshing (fine across the ONO stack for nonlocal tunneling) ---
+; ONO stack: 0.5 nm vertical spacing (4 / 10 / 12 lines in TO / N / BO)
+(sdedr:define-refeval-window "Win_Stack" "Rectangle" (position 0 Ybox 0) (position Lg 0 0))
+(sdedr:define-refinement-size "Mesh_Stack" 0.005 0.0005 0.0025 0.00025)
+(sdedr:define-refinement-placement "Place_Stack_Mesh" "Mesh_Stack" "Win_Stack")
+
+; Si surface (inversion layer, tunneling source of holes during erase)
+(sdedr:define-refeval-window "Win_Surf" "Rectangle" (position Xmin 0 0) (position Xmax 0.003 0))
+(sdedr:define-refinement-size "Mesh_Surf" 0.005 0.0003 0.0025 0.0001)
+(sdedr:define-refinement-placement "Place_Surf_Mesh" "Mesh_Surf" "Win_Surf")
+
+; Channel / junctions, refined on doping gradients
+(sdedr:define-refeval-window "Win_Channel" "Rectangle" (position Xmin 0 0) (position Xmax (* 2 Xj) 0))
+(sdedr:define-refinement-size "Mesh_Channel" 0.005 0.002 0.001 0.0002)
+(sdedr:define-refinement-placement "Place_Channel_Mesh" "Mesh_Channel" "Win_Channel")
+(sdedr:define-refinement-function "Mesh_Channel" "DopingConcentration" "MaxTransDiff" 1)
+
+(sdedr:define-refinement-size "Mesh_Poly" 0.01 0.005 0.005 0.0025)
+(sdedr:define-refinement-region "Place_Poly_Mesh" "Mesh_Poly" "GatePoly")
+
+(sdedr:define-refinement-size "Mesh_Sub" 0.05 0.05 0.01 0.01)
+(sdedr:define-refinement-region "Place_Sub_Mesh" "Mesh_Sub" "Substrate")
+
+; Keep mesh lines exactly on the ONO interfaces (avoids sliver elements)
+(sdesnmesh:axisaligned "fitInterfaces" #t
+  "yCuts" (list Ybox Ynit Ytox 0))
+
+; --- 6. Save + mesh  ->  sonos_bnd.tdr, sonos_msh.cmd, sonos_msh.tdr ---
+(sde:build-mesh "sonos")

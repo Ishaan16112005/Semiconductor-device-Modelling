@@ -1,0 +1,17 @@
+DATEX2.1
+Datacode
+"$Id: datexcodes.txt,v 1.27.2.1 2004/06/15 21:40:13 weichoon Exp $"
+"Data codes for semiconductor process and device simulation"
+
+Materials {
+
+    NitrideAsSemiconductor {
+	code	= 10012
+	label	= "Si3N4_Semic"
+	group	= Semiconductor
+	color	= #dfa955
+    }
+
+}
+
+

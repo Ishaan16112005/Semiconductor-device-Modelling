@@ -1,0 +1,152 @@
+* SONOS parameter file (adapted from Synopsys SONOS_Memory application example)
+
+Material="Silicon" {
+  BarrierTunneling { 
+     mt = 0.32 , 0.16
+  }
+}
+
+Material="PolySi" {
+  BarrierTunneling {
+    mt = 0.36, 0.38
+  }
+}
+
+Material="Oxide" {
+  BarrierTunneling { 
+     mt = 0.36,0.38
+  }
+}
+
+Material="NitrideAsSemiconductor" {
+  
+  Epsilon
+  { *  Ratio of the permittivities of material and vacuum
+  
+    * epsilon() = epsilon
+  	epsilon	= 7.5	# [1]
+  }
+  
+  
+  
+  Bandgap
+  { * Eg = Eg0 + alpha Tpar^2 / (beta + Tpar) - alpha T^2 / (beta + T)
+    * Parameter 'Tpar' specifies the value of lattice 
+    * temperature, at which parameters below are defined
+    * Chi0 is electron affinity.
+  	Chi0	= 1.9	# [eV]
+  	Eg0	= 5	# [eV]
+  	alpha	= 0.0000e+00	# [eV K^-1]
+  	beta	= 0.0000e+00	# [K]
+  	Tpar	= 0.0000e+00	# [K]
+  }
+  
+  eDOSMass
+  {
+    * For effective mass specificatition Formula1 (me approximation):
+    * or Formula2 (Nc300) can be used :
+  	Formula	= 1	# [1]
+    * Formula1:
+    * me/m0 = [ (6 * mt)^2 *  ml ]^(1/3) + mm
+    * mt = a[Eg(0)/Eg(T)] 
+    * Nc(T) = 2(2pi*kB/h_Planck^2*me*T)^3/2 = 2.540e19 ((me/m0)*(T/300))^3/2 
+  	a	= 0.0000e+00	# [1]
+  	ml	= 0.0000e+00	# [1]
+  	mm	= 0.42	# [1]
+  }
+  
+  hDOSMass
+  {
+    * For effective mass specificatition Formula1 (mh approximation):
+    * or Formula2 (Nv300) can be used :
+  	Formula	= 1	# [1]
+    * Formula1:
+    * mh =  m0*{[(a+bT+cT^2+dT^3+eT^4)/(1+fT+gT^2+hT^3+iT^4)]^(2/3) + mm}
+    * Nv(T) = 2(2pi*kB/h_Planck^2*mh*T)^3/2 = 2.540e19 ((mh/m0)*(T/300))^3/2 
+  	a	= 0	# [1]
+  	b	= 0	# [K^-1]
+  	c	= 0	# [K^-2]
+  	d	= 0	# [K^-3]
+  	e	= 0	# [K^-4]
+  	f	= 0	# [K^-1]
+  	g	= 0	# [K^-2]
+  	h	= 0	# [K^-3]
+  	i	= 0	# [K^-4]
+  	mm	= 1	# [1]
+  }
+  
+  QuantumPotentialParameters
+  { * gamma:  weighting factor for quantum potential
+    * theta:  weight for quadratic term
+    * xi:     weight for quasi Fermi potential
+    * eta:    weight for electrostatic potential
+  	gamma	= 1 ,	1	# [1]
+  	theta	= 0.5 ,	0.5	# [1]
+  	xi	= 0.0000e+00 ,	0.0000e+00	# [1]
+  	eta	= 0.0000e+00 ,	0.0000e+00	# [1]
+  }
+  
+  ConstantMobility:
+  { * mu_const = mumax (T/T0)^(-Exponent)
+  	mumax	= 1e-5 ,	1e-5	# [cm^2/(Vs)]
+  	Exponent	= 2.5 ,	2.2	# [1]
+  	mutunnel	= 0.01 ,	0.01	# [cm^2/(Vs)]
+  }
+  
+  ConstantMobility_aniso:
+  { * mu_const = mumax (T/T0)^(-Exponent)
+  	mumax	= 1e-5 ,	1e-5	# [cm^2/(Vs)]
+  	Exponent	= 2.5 ,	2.2	# [1]
+  	mutunnel	= 0.05 ,	0.05	# [cm^2/(Vs)]
+  }
+  
+  
+  BarrierTunneling { 
+    mt = 0.36, 0.38
+  }
+  
+  
+  Traps
+  { 
+    *     G is degeneracy factor 
+  	G	= 1 ,	1	# [1]
+  
+    *     XsecFormula=1: Xsec(F) = Xsec 
+    *     XsecFormula=2: Xsec(F) = Xsec*(1+a1*(F/F0)^p1+a2*(F/F0)^p2)^p0, F0 = 1 V/cm 
+    *     XsecFormula=3: Xsec(F) = Xsec*(1+Gt), Gt is Hurkx TATunneling factor 
+    *     XsecFormula=4: Xsec(F) = Xsec*(1+Gpf), Gpf is Poole-Frenkel factor 
+  	XsecFormula	= 4,	4	# [1]
+    *	Xsec	= 1.0000e-15 ,	1.0000e-15	# [cm^2]
+  	a1	= 0.0000e+00 ,	0.0000e+00	# [1]
+  	p1	= 1 ,	1	# [1]
+  	a2	= 0.0000e+00 ,	0.0000e+00	# [1]
+  	p2	= 1 ,	1	# [1]
+  	p0	= 1 ,	1	# [1]
+  
+    *     VthFormula=1: Vth(T) = Vth*(T/300)^1/2 
+    *     VthFormula=2: Vth(T) = (3*k*T/m_300)^1/2, 
+    *                            m_300 is DOS mass calculated at T=300 
+  	VthFormula	= 1 ,	1	# [1]
+  	Vth	= 2.0420e+07 ,	1.5626e+07	# [cm/s]
+  	Jcoef	= 0.0000e+00 ,	0.0000e+00	# [1]
+  
+    *     Tunneling to traps is determined by the interaction volume
+    *     TrapVolume, the Huang-Rhys factor, and the Phonon energy.
+  	* TrapVolume	= 0	# [um^3]
+  	HuangRhys	= 0.0000e+00	# [1]
+  	PhononEnergy	= 0.0000e+00	# [eV]
+  
+    *     Constant emission rate term
+  	ConstEmissionRate	= 0.0000e+00 ,	0.0000e+00	# [1/s]
+  
+  }
+  
+  PooleFrenkel
+  { * TrapXsection = Xsec0*(1+Gpf) 
+    * Gpf = (1+(a-1)*exp(a))/a^2-0.5 
+    * where 
+    *       a = (1/kT)*(q^3*F/pi/e0/epsPF)^0.5, 
+    *       F is the electric field. 
+  	epsPF	= 7.5 ,	7.5	# [1]
+  }
+}

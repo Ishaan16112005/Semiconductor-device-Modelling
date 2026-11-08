@@ -1,0 +1,12 @@
+# Sentaurus output files (large; regenerate by running the flow)
+*.tdr
+*.plt
+*.sav
+*.log
+*.out
+*.err
+/simulation_files/study/
+*.csv
+/simulation_files/*.png
+/simulation_files/*.txt
+!/simulation_files/datexcodes.txt
